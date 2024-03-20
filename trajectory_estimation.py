@@ -184,7 +184,7 @@ if __name__ == "__main__":
     config = Config(
         sequence_dir="data/raw_data",
         feature_dir="data/features",
-        output_dir="data/trajectories/trajectory/3/IMU_PCD_0.03",
+        output_dir="data/trajectories/trajectory/FPFH_outlier_removed_0.03",
         experiment="exp_12",
         trial="trial_1",
         subject="subject-1",
@@ -192,13 +192,13 @@ if __name__ == "__main__":
         groundtruth_dir="data/trajectories/groundtruth",
     )
     
-    config.voxel_size=0.03
+    config.voxel_size=0.08
     config.target_fps=20
     config.min_std=0.5
     
-    for i in range(12, 21):
+    for i in range(1, 11):
         print(f"Iteration: {i}")
-        config.output_dir=f"data/trajectories/trajectory/{i}/IMU_PCD_0.03"
+        config.output_dir=f"data/trajectories/trajectory/{i}/IMU_PCD_{config.voxel_size}"
         
         for trial in os.listdir(os.path.join(config.feature_dir, config.experiment)):
             config.trial = trial
@@ -207,5 +207,4 @@ if __name__ == "__main__":
                 for sequence in os.listdir(os.path.join(config.feature_dir, config.experiment, config.trial, str(config.voxel_size), config.subject)):
                     config.sequence = sequence
                     print(f"Processing: {config.experiment} >> {config.trial} >> {config.subject} >> {config.sequence}")
-                    estimate_trajectory(config, "data/trajectories/local/IMU_PCD_outlier_removed")
-                    
+                    estimate_trajectory(config, f"data/trajectories/local/{i}/IMU_PCD_{config.voxel_size}")

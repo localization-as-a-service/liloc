@@ -20,11 +20,11 @@ from PIL import Image
 
 
 def fpfh_local_registration(config: Config):
-    # output_file = config.get_output_file(config.get_file_name() + ".npz")
+    output_file = config.get_output_file(config.get_file_name() + ".npz")
     
-    # if os.path.exists(output_file):
-    #     print(f"-- File {output_file} already exists. Skipping.")
-    #     return
+    if os.path.exists(output_file):
+        print(f"-- File {output_file} already exists. Skipping.")
+        return
     
     feature_dir = config.get_feature_dir()
 
@@ -42,7 +42,7 @@ def fpfh_local_registration(config: Config):
     local_pcds = []
     fpfh_feats = []
     
-    start_time = time.time()
+    # start_time = time.time()
 
     for t in tqdm.trange(num_frames):
         feature_file = os.path.join(feature_dir, f"{sequence_ts[t]}.secondary.npz")
@@ -51,15 +51,15 @@ def fpfh_local_registration(config: Config):
         local_pcds.append(pcd)
         fpfh_feats.append(fpfh) 
         
-    end_time = time.time()
-    print(f"-- Caching took {end_time - start_time} seconds.")
-    print(f"-- Average time per frame: {(end_time - start_time) / num_frames} seconds.")
-    print(f"-- Itr/second: {num_frames / (end_time - start_time)}")
+    # end_time = time.time()
+    # print(f"-- Caching took {end_time - start_time} seconds.")
+    # print(f"-- Average time per frame: {(end_time - start_time) / num_frames} seconds.")
+    # print(f"-- Itr/second: {num_frames / (end_time - start_time)}")
         
     print("-- Registering local PCDs.")
     
     local_t = [np.identity(4)]
-    start_time = time.time()
+    # start_time = time.time()
     
     for t in tqdm.trange(num_frames - 1):
         source, source_fpfh = copy.deepcopy(local_pcds[t + 1]), fpfh_feats[t + 1]
@@ -70,29 +70,29 @@ def fpfh_local_registration(config: Config):
 
         local_t.append(reg_result.transformation)
     
-    end_time = time.time()
-    print(f"-- Caching took {end_time - start_time} seconds.")
-    print(f"-- Average time per frame: {(end_time - start_time) / num_frames} seconds.")
-    print(f"-- Itr/second: {num_frames / (end_time - start_time)}")
+    # end_time = time.time()
+    # print(f"-- Caching took {end_time - start_time} seconds.")
+    # print(f"-- Average time per frame: {(end_time - start_time) / num_frames} seconds.")
+    # print(f"-- Itr/second: {num_frames / (end_time - start_time)}")
     
     print("-- Refining Trajectory.")
     
-    # trajectory_t = [np.identity(4)]
+    trajectory_t = [np.identity(4)]
 
-    # for t in tqdm.trange(1, num_frames):
-    #     trajectory_t.append(np.dot(trajectory_t[t - 1], local_t[t]))
+    for t in tqdm.trange(1, num_frames):
+        trajectory_t.append(np.dot(trajectory_t[t - 1], local_t[t]))
         
-    # print("-- Saving Trajectory.")
+    print("-- Saving Trajectory.")
     
-    # np.savez_compressed(output_file, sequence_ts=sequence_ts, local_t=local_t, trajectory_t=trajectory_t)
+    np.savez_compressed(output_file, sequence_ts=sequence_ts, local_t=local_t, trajectory_t=trajectory_t)
         
     
 def imu_pcd_fused_registration(config: Config, calib_period: int = 4):
-    # output_file = config.get_output_file(f"{config.get_file_name()}.npz")
-    # 
-    # if os.path.exists(output_file):
-    #     print(f"-- File {output_file} already exists. Skipping.")
-    #     return
+    output_file = config.get_output_file(f"{config.get_file_name()}.npz")
+    
+    if os.path.exists(output_file):
+        print(f"-- File {output_file} already exists. Skipping.")
+        return
     
     feature_dir = config.get_feature_dir()
     motion_dir = config.get_motion_dir()
@@ -170,7 +170,7 @@ def imu_pcd_fused_registration(config: Config, calib_period: int = 4):
 
     local_t = [np.identity(4) for _ in range(num_frames)]
 
-    start_time = time.time()
+    # start_time = time.time()
     num_iterations = 0
     for start_c, end_c in cutoffs:
         # first frame registration with FPFH
@@ -229,10 +229,10 @@ def imu_pcd_fused_registration(config: Config, calib_period: int = 4):
             num_iterations += 1
         
     
-    end_time = time.time()
-    print(f"Total time: {end_time - start_time}")
-    print(f"Average time: {(end_time - start_time) / num_iterations}")
-    print(f"Itr/sec: {num_iterations / (end_time - start_time)}")
+    # end_time = time.time()
+    # print(f"Total time: {end_time - start_time}")
+    # print(f"Average time: {(end_time - start_time) / num_iterations}")
+    # print(f"Itr/sec: {num_iterations / (end_time - start_time)}")
             
     local_t = np.array(local_t)
     
@@ -252,7 +252,7 @@ def imu_pcd_fused_registration(config: Config, calib_period: int = 4):
         # trajectory = pointcloud.merge_pcds(trajectory_pcd, config.voxel_size)
         # open3d.visualization.draw_geometries([trajectory])
     
-    # np.savez_compressed(output_file, sequence_ts=sequence_ts, local_t=local_t, trajectory_t=trajectory_t)
+    np.savez_compressed(output_file, sequence_ts=sequence_ts, local_t=local_t, trajectory_t=trajectory_t)
     
     
 def normalize_timestamps(source_file, target_file):
@@ -290,7 +290,7 @@ if __name__ == "__main__":
     config = Config(
         sequence_dir="data/raw_data",
         feature_dir="data/features",
-        output_dir="data/trajectories/local/IMU_0.05",
+        output_dir="data/trajectories/local/FPFH_outlier_removed_0.05",
         experiment="exp_12",
         trial="trial_1",
         subject="subject-1",
@@ -298,21 +298,35 @@ if __name__ == "__main__":
         groundtruth_dir="data/trajectories/groundtruth",
     )
     
-    config.voxel_size=0.03
-    config.target_fps=20
-    config.min_std=0.5
+    # config.target_fps=20
+    # config.min_std=0.5 # 0.5 for exp 12, 1.0 for exp 13
+    # for voxel_size in [0.03, 0.05, 0.08]:
+    #     config.voxel_size=voxel_size
+    #     print(f"Voxel Size: {config.voxel_size}")
+    #     for i in range(1, 11):
+    #         print(f"Iteration: {i}")
+    #         config.output_dir=f"data/trajectories/local/{i}/IMU_PCD_{config.voxel_size}"
+        
+    #         for trial in os.listdir(os.path.join(config.feature_dir, config.experiment)):
+    #             config.trial = trial
+    #             for subject in os.listdir(os.path.join(config.feature_dir, config.experiment, config.trial, str(config.voxel_size))):
+    #                 config.subject = subject    
+    #                 for sequence in os.listdir(os.path.join(config.feature_dir, config.experiment, config.trial, str(config.voxel_size), config.subject)):
+    #                     config.sequence = sequence
+    #                     print(f"Processing: {config.experiment} >> {config.trial} >> {config.subject} >> {config.sequence}")
+    #                     imu_pcd_fused_registration(config)
+        
+    # for i in range(1, 11):
+    #     print(f"Iteration: {i}")
+        
+    #     target_files = glob.glob(f"data/trajectories/local/{i}/IMU_PCD_0.08/exp_12/*.npz")
     
-    for trial in os.listdir(os.path.join(config.feature_dir, config.experiment)):
-        config.trial = trial
-        for subject in os.listdir(os.path.join(config.feature_dir, config.experiment, config.trial, str(config.voxel_size))):
-            config.subject = subject    
-            for sequence in os.listdir(os.path.join(config.feature_dir, config.experiment, config.trial, str(config.voxel_size), config.subject)):
-                config.sequence = sequence
-                print(f"Processing: {config.experiment} >> {config.trial} >> {config.subject} >> {config.sequence}")
-                fpfh_local_registration(config)
-    
+    #     for target_file in tqdm.tqdm(target_files):
+    #         source_file = target_file.replace("IMU_PCD", "FPFH")
+    #         normalize_timestamps(source_file, target_file)
+        
 
-    # target_files = glob.glob("data/trajectories/local/IMU_PCD_outlier_removed_0.05/exp_12/*.npz")
+    # target_files = glob.glob("data/trajectories/local/IMU_PCD_outlier_removed/exp_13/*.npz")
     
     # for target_file in tqdm.tqdm(target_files):
     #     source_file = target_file.replace("IMU_PCD", "FPFH")

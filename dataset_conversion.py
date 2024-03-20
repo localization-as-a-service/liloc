@@ -75,4 +75,4 @@ def convert_to_point_clouds(dataset_dir, subject_id=1, device_id=3, aligned=True
 
 
 if __name__ == "__main__":
-    convert_to_point_clouds("data/raw_data/exp_12/trial_3", subject_id=1, device_id=3, aligned=False)
+    convert_to_point_clouds("data/raw_data/exp_13/trial_4", subject_id=1, device_id=3, aligned=False)

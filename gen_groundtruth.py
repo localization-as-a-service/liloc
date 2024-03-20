@@ -96,7 +96,7 @@ def find_cutoffs(std_values, target_fps, min_std, threshold):
     
     
 def create_fragments(dataset_dir, experiment, trial, subject, sequence, voxel_size, out_dir):
-    min_std = 0.5
+    min_std = 1.0 # 0.5
     threshold = 0.5
     target_fps = 20
     cutoff_margin = 5 # frames
@@ -188,7 +188,7 @@ def register_fragments(dataset_dir, experiment, trial, subject, sequence, voxel_
     for i in tqdm.trange(len(fragment_files)):
         fragment_pcd, global_pcd, refine_reg = grid_search.global_registration(
             src_feature_file=fragment_files[i],
-            tgt_feature_file="data/reference/larc_kitchen_v5.npz",
+            tgt_feature_file=f"data/reference/larc_kitchen_v6_{trial}.npz",
             cell_size=4,
             voxel_size=0.03,
             refine_enabled=True
@@ -212,7 +212,7 @@ def seperate_poses(dataset_dir, experiment, trial, subject, sequence, voxel_size
         
 
 def disassemble_fragments(dataset_dir, experiment, trial, subject, sequence, voxel_size, out_dir):
-    min_std = 0.5
+    min_std = 1.0 # 0.5
     threshold = 0.5
     target_fps = 20
     cutoff_margin = 5 # frames
@@ -284,7 +284,7 @@ def validate_groundtruth(dataset_dir, experiment, trial, subject, sequence, voxe
     file_name = f"{experiment}__{trial}__{subject}__{sequence}"
     try:
         local_t = np.load(os.path.join(out_dir, f"{file_name}.gtpose.npz"))["local_t"]
-        target = open3d.io.read_point_cloud("data/reference/larc_kitchen_v5.pcd")
+        target = open3d.io.read_point_cloud("data/reference/larc_kitchen_v6.pcd")
         
         refined_pcds = []
 
@@ -312,7 +312,7 @@ def validate_groundtruth(dataset_dir, experiment, trial, subject, sequence, voxe
 if __name__ == "__main__":
     VOXEL_SIZE = 0.05
     ROOT_DIR = "data/features"
-    EXPERIMENT = "exp_12"
+    EXPERIMENT = "exp_13"
     OUT_DIR = f"data/trajectories/groundtruth/{EXPERIMENT}"
 
     if not os.path.exists(OUT_DIR): os.makedirs(OUT_DIR)
